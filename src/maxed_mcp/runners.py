@@ -149,6 +149,26 @@ def error_envelope(code: str, message: str, **detail) -> Dict[str, object]:
     return {"ok": False, "error": err}
 
 
+def truncate_output(text: Optional[str], max_chars: int = 2000) -> str:
+    """Truncate CLI output while preserving both initial command context and trailing tracebacks.
+
+    If text length exceeds max_chars, returns the first max_chars//2 chars and the last
+    max_chars//2 chars separated by an explicit truncation notice.
+    """
+    if not text:
+        return ""
+
+    text = text.strip()
+    if len(text) <= max_chars:
+        return text
+
+    half = max_chars // 2
+    head = text[:half]
+    tail = text[-half:]
+    removed = len(text) - (len(head) + len(tail))
+    return f"{head}\n\n... [{removed} chars truncated] ...\n\n{tail}"
+
+
 def run_json(
     cmd: Sequence[str],
     args: Sequence[str],
@@ -169,11 +189,17 @@ def run_json(
         return error_envelope("exec_error", str(exc))
 
     out = out.strip()
-    if code != 0 and not out:
+    err = err.strip()
+    if code != 0:
+        detail: Dict[str, object] = {"exit_code": code}
+        if out:
+            detail["stdout"] = truncate_output(out)
+        if err:
+            detail["stderr"] = truncate_output(err)
         return error_envelope(
             "command_failed",
-            (err.strip() or f"command exited with status {code}"),
-            exit_code=code,
+            (truncate_output(err) or f"command exited with status {code}"),
+            **detail,
         )
     try:
         parsed = json.loads(out) if out else {}
@@ -182,7 +208,8 @@ def run_json(
             "invalid_json_output",
             f"tool did not emit valid JSON: {exc}",
             exit_code=code,
-            stdout=out[:2000],
-            stderr=err.strip()[:2000],
+            stdout=truncate_output(out),
+            stderr=truncate_output(err),
         )
     return {"ok": True, "exit_code": code, "result": parsed}
+

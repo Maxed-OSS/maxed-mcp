@@ -1,5 +1,5 @@
 # Runtime dependency: the official Python MCP SDK.
-mcp>=1.2
+mcp>=1.2,<2
 
 # Optional: install the Python sibling tools so the shell-backed tools
 # (normalize_bank_statement, classify_document) work out of the box.

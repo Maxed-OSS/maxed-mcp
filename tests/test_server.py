@@ -85,3 +85,13 @@ def test_validate_workpaper_present_or_gated():
     else:
         assert r["ok"] is False
         assert r["error"]["code"] == "tool_unavailable"
+
+
+def test_wrap_cli_command_failure_preserves_stdout_context():
+    r = server._wrap_cli(2, "useful stdout hint", "plain stderr", "result")
+    assert r["ok"] is False
+    assert r["error"]["code"] == "command_failed"
+    assert r["error"]["message"] == "plain stderr"
+    assert r["error"]["detail"]["exit_code"] == 2
+    assert r["error"]["detail"]["stdout"] == "useful stdout hint"
+

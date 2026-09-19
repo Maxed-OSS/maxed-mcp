@@ -59,7 +59,10 @@ def _wrap_cli(code: int, out: str, err: str, ok_key: str) -> Dict[str, object]:
             return {"ok": True, ok_key: json.loads(out) if out else {}}
         except json.JSONDecodeError as exc:
             return runners.error_envelope(
-                "invalid_json_output", f"tool did not emit valid JSON: {exc}", stdout=out[:2000]
+                "invalid_json_output",
+                f"tool did not emit valid JSON: {exc}",
+                stdout=runners.truncate_output(out),
+                stderr=runners.truncate_output(err),
             )
     err = err.strip()
     try:
@@ -69,8 +72,17 @@ def _wrap_cli(code: int, out: str, err: str, ok_key: str) -> Dict[str, object]:
             return parsed
     except json.JSONDecodeError:
         pass
+
+    detail: Dict[str, object] = {"exit_code": code}
+    if out:
+        detail["stdout"] = runners.truncate_output(out)
+    if err:
+        detail["stderr"] = runners.truncate_output(err)
+
     return runners.error_envelope(
-        "command_failed", err or f"command exited with status {code}", exit_code=code
+        "command_failed",
+        runners.truncate_output(err) or f"command exited with status {code}",
+        **detail,
     )
 
 

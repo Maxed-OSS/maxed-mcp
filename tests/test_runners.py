@@ -41,6 +41,21 @@ def test_run_json_reports_command_failure():
     assert r["error"]["code"] == "command_failed"
 
 
+def test_run_json_reports_command_failure_even_with_json_stdout():
+    r = runners.run_json(
+        [
+            sys.executable,
+            "-c",
+            "import json, sys; print(json.dumps({'error':'bad'})); sys.exit(7)",
+        ],
+        [],
+    )
+    assert r["ok"] is False
+    assert r["error"]["code"] == "command_failed"
+    assert r["error"]["detail"]["exit_code"] == 7
+    assert '"error": "bad"' in r["error"]["detail"]["stdout"]
+
+
 def test_statement_normalizer_resolves_when_installed():
     # statement-normalizer is a Python fallback, so at minimum the module-run
     # form resolves whenever the package is importable.

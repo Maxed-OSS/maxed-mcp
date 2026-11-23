@@ -169,11 +169,17 @@ def run_json(
         return error_envelope("exec_error", str(exc))
 
     out = out.strip()
-    if code != 0 and not out:
+    err = err.strip()
+    if code != 0:
+        detail: Dict[str, object] = {"exit_code": code}
+        if out:
+            detail["stdout"] = out[:2000]
+        if err:
+            detail["stderr"] = err[:2000]
         return error_envelope(
             "command_failed",
-            (err.strip() or f"command exited with status {code}"),
-            exit_code=code,
+            (err or f"command exited with status {code}"),
+            **detail,
         )
     try:
         parsed = json.loads(out) if out else {}
@@ -183,6 +189,6 @@ def run_json(
             f"tool did not emit valid JSON: {exc}",
             exit_code=code,
             stdout=out[:2000],
-            stderr=err.strip()[:2000],
+            stderr=err[:2000],
         )
     return {"ok": True, "exit_code": code, "result": parsed}

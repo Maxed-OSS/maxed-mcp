@@ -40,6 +40,15 @@ def test_money_bad_request_is_enveloped():
     assert r["error"]["code"] == "bad_request"
 
 
+def test_wrap_cli_command_failure_preserves_stdout_context():
+    r = server._wrap_cli(2, "useful stdout hint", "plain stderr", "result")
+    assert r["ok"] is False
+    assert r["error"]["code"] == "command_failed"
+    assert r["error"]["message"] == "plain stderr"
+    assert r["error"]["detail"]["exit_code"] == 2
+    assert r["error"]["detail"]["stdout"] == "useful stdout hint"
+
+
 def test_verify_webhook_hmac_via_server():
     sig = hmac_verify.sign("hex", "secret", "body")
     r = server.verify_webhook_hmac("hex", "secret", "body", sig)

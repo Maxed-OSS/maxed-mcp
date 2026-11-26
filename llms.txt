@@ -53,6 +53,12 @@ official Python MCP SDK), FastMCP server.
   - Returns: { ok, op, input, rate, rounding, exact_minor_units, result: {minor_units, currency, exponent, formatted} }.
   - Backend: money-rs semantics, in-process (always available).
 
+- money_sum(amounts: int[], currency: string, exponent?: int) -> object
+  - Sum integer minor-unit amounts exactly without floating-point drift (supports negative values for debits/refunds).
+  - currency: USD, EUR, GBP, JPY, BHD, or any code plus an explicit exponent for a custom currency.
+  - Returns: { ok, op, count, result: {minor_units, currency, exponent, formatted} }.
+  - Backend: money-rs semantics, in-process (always available).
+
 - verify_webhook_hmac(scheme: string, secret: string, body: string, signature: string, prefix="", tolerance_seconds=300, timestamp?: int) -> object
   - Constant-time verify an inbound webhook signature.
   - scheme: stripe (t=..,v1=.. header, timestamped) | hex (bare hex HMAC) | base64.

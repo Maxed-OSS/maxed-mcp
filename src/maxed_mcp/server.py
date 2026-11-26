@@ -34,8 +34,8 @@ mcp = FastMCP(
     instructions=(
         "Deterministic accounting tools: parse bank statements and OFX/QFX "
         "downloads, classify accounting documents, validate CPA workpaper-spec "
-        "documents, do exact money math (allocation and rate application), and "
-        "verify webhook HMAC signatures. Call list_capabilities first to see "
+        "documents, do exact money math (allocation, rate application, and summation), "
+        "and verify webhook HMAC signatures. Call list_capabilities first to see "
         "which shell-backed tools are available on this host."
     ),
 )
@@ -132,6 +132,12 @@ def list_capabilities() -> Dict[str, object]:
                 "backend": "money-rs semantics (in-process)",
                 "available": True,
                 "summary": "Apply a rate to an amount with explicit rounding.",
+            },
+            {
+                "name": "money_sum",
+                "backend": "money-rs semantics (in-process)",
+                "available": True,
+                "summary": "Sum integer minor-unit amounts exactly with no floating-point drift.",
             },
             {
                 "name": "verify_webhook_hmac",
@@ -324,6 +330,24 @@ def money_apply_rate(
         return money.apply_rate(
             minor_units, currency, rate, rounding=rounding, exponent=exponent
         )
+    except money.MoneyError as exc:
+        return runners.error_envelope("bad_request", str(exc))
+
+
+@mcp.tool()
+def money_sum(
+    amounts: List[int],
+    currency: str,
+    exponent: Optional[int] = None,
+) -> Dict[str, object]:
+    """Sum integer minor-unit amounts exactly without floating-point drift.
+
+    Pass a list of integer minor units (for example ``[1999, -500, 250]`` for
+    netting credits and debits). ``currency`` is a known code (USD, EUR, GBP,
+    JPY, BHD) or any custom code with an explicit ``exponent``.
+    """
+    try:
+        return money.sum_amounts(amounts, currency, exponent=exponent)
     except money.MoneyError as exc:
         return runners.error_envelope("bad_request", str(exc))
 

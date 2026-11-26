@@ -40,6 +40,7 @@ so an agent knows which backends exist on this host before calling anything.
 | `validate_workpaper(document, schema)` | [cpa-workpaper-spec](https://github.com/maxed-oss/cpa-workpaper-spec) validator | needs `CPA_WORKPAPER_SPEC_DIR` |
 | `money_allocate(minor_units, currency, ratios?\|parts?, exponent?)` | [money-rs](https://github.com/maxed-oss/money-rs) semantics, in-process | always |
 | `money_apply_rate(minor_units, currency, rate, rounding?, exponent?)` | [money-rs](https://github.com/maxed-oss/money-rs) semantics, in-process | always |
+| `money_sum(amounts, currency, exponent?)` | [money-rs](https://github.com/maxed-oss/money-rs) semantics, in-process | always |
 | `verify_webhook_hmac(scheme, secret, body, signature, prefix?, tolerance_seconds?, timestamp?)` | [webhook-hmac-verifier](https://github.com/maxed-oss/webhook-hmac-verifier) semantics, in-process | always |
 
 Full per-tool argument and return shapes are in [`llms.txt`](llms.txt).

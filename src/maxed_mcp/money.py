@@ -193,6 +193,37 @@ def apply_rate(
     }
 
 
+def sum_amounts(
+    amounts: List[int],
+    currency: str,
+    *,
+    exponent: Optional[int] = None,
+) -> Dict[str, object]:
+    """Sum exact integer minor-unit amounts without floating-point drift.
+
+    Supports negative values for debits/refunds alongside positive credits.
+    Rejects non-integer entries (including booleans and floats) so agents
+    cannot silently truncate fractional amounts.
+    """
+    desc = _resolve_currency(currency, exponent)
+    if isinstance(amounts, (str, bytes)) or not isinstance(amounts, (list, tuple)):
+        raise MoneyError("amounts must be a list of integer minor-unit values")
+    validated: List[int] = []
+    for item in amounts:
+        if isinstance(item, bool) or not isinstance(item, int):
+            raise MoneyError(
+                f"each amount must be an integer minor-unit value, got {type(item).__name__}"
+            )
+        validated.append(item)
+    total = sum(validated)
+    return {
+        "ok": True,
+        "op": "sum",
+        "count": len(validated),
+        "result": _money_dict(total, desc),
+    }
+
+
 def supported_currencies() -> List[Dict[str, object]]:
     """List the built-in currencies (custom ones need an explicit exponent)."""
     return [

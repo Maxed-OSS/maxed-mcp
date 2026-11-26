@@ -31,6 +31,7 @@ semantics of their canonical sibling libraries.
 | `validate_workpaper` | Validate a document against a [cpa-workpaper-spec](https://github.com/maxed-oss/cpa-workpaper-spec) JSON Schema. | spec validator |
 | `money_allocate` | Split an amount across ratios or evenly, with no lost minor units. | [money-rs](https://github.com/maxed-oss/money-rs) semantics |
 | `money_apply_rate` | Apply a rate (tax, tip, share) with explicit rounding. | [money-rs](https://github.com/maxed-oss/money-rs) semantics |
+| `money_sum` | Sum integer minor-unit amounts exactly, with no floating-point drift. | [money-rs](https://github.com/maxed-oss/money-rs) semantics |
 | `verify_webhook_hmac` | Constant-time verify a Stripe / hex / base64 webhook HMAC signature. | [webhook-hmac-verifier](https://github.com/maxed-oss/webhook-hmac-verifier) semantics |
 
 `money_*` and `verify_webhook_hmac` are computed in-process and are always

@@ -19,11 +19,12 @@ def test_list_capabilities_lists_all_tools():
         "validate_workpaper",
         "money_allocate",
         "money_apply_rate",
+        "money_sum",
         "verify_webhook_hmac",
     } <= names
     # in-process tools are always available
     for t in caps["tools"]:
-        if t["name"] in {"money_allocate", "money_apply_rate", "verify_webhook_hmac"}:
+        if t["name"] in {"money_allocate", "money_apply_rate", "money_sum", "verify_webhook_hmac"}:
             assert t["available"] is True
 
 
@@ -32,12 +33,20 @@ def test_money_tools_via_server():
     assert [p["minor_units"] for p in r["parts"]] == [34, 33, 33]
     r = server.money_apply_rate(1999, "USD", 0.0825)
     assert r["result"]["minor_units"] == 165
+    r = server.money_sum([1250, 750, -200], "USD")
+    assert r["ok"] is True
+    assert r["count"] == 3
+    assert r["result"]["minor_units"] == 1800
+    assert r["result"]["formatted"] == "$18.00"
 
 
 def test_money_bad_request_is_enveloped():
     r = server.money_allocate(100, "ZZZ", parts=2)  # unknown currency, no exponent
     assert r["ok"] is False
     assert r["error"]["code"] == "bad_request"
+    r_sum = server.money_sum([100], "ZZZ")
+    assert r_sum["ok"] is False
+    assert r_sum["error"]["code"] == "bad_request"
 
 
 def test_verify_webhook_hmac_via_server():

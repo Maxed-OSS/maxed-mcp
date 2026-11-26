@@ -63,3 +63,36 @@ def test_custom_currency_needs_exponent():
 def test_unknown_rounding_rejected():
     with pytest.raises(money.MoneyError):
         money.apply_rate(100, "USD", 0.1, rounding="nearest")
+
+
+def test_sum_amounts_exact_and_mixed_signs():
+    r = money.sum_amounts([1999, 250, -500], "USD")
+    assert r["ok"] is True
+    assert r["op"] == "sum"
+    assert r["count"] == 3
+    assert r["result"] == {
+        "minor_units": 1749,
+        "currency": "USD",
+        "exponent": 2,
+        "formatted": "$17.49",
+    }
+
+
+def test_sum_amounts_empty_list():
+    r = money.sum_amounts([], "JPY")
+    assert r["count"] == 0
+    assert r["result"]["minor_units"] == 0
+    assert r["result"]["formatted"] == "¥0"
+
+
+def test_sum_amounts_custom_currency_and_validation():
+    r = money.sum_amounts([100_000_000, 50_000_000], "XBT", exponent=8)
+    assert r["result"]["formatted"] == "XBT1.50000000"
+    with pytest.raises(money.MoneyError):
+        money.sum_amounts([100], "XBT")
+    with pytest.raises(money.MoneyError):
+        money.sum_amounts([10.5], "USD")  # type: ignore[list-item]
+    with pytest.raises(money.MoneyError):
+        money.sum_amounts([True], "USD")  # type: ignore[list-item]
+    with pytest.raises(money.MoneyError):
+        money.sum_amounts("100", "USD")  # type: ignore[arg-type]
